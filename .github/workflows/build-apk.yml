@@ -27,15 +27,19 @@ jobs:
       - name: Build Web Application
         run: npm run build
 
-      - name: Setup Java Development Kit (JDK 21)
+      - name: Setup Java Development Kit (JDK 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
 
-      - name: Accept Android SDK Licenses
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Licenses and Verify Android SDK Platform
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" || true
 
       - name: Synchronize Capacitor Android Assets
         run: |
@@ -53,7 +57,7 @@ jobs:
       - name: Collect Generated APK
         run: |
           mkdir -p build-output
-          find android/app/build/outputs/apk/debug -name "*.apk" -exec cp {} build-output/ \;
+          find android/app/build/outputs/apk -name "*.apk" -exec cp {} build-output/ \;
           echo "Generated APK file(s):"
           ls -lh build-output/
 
