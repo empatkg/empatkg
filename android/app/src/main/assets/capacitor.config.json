@@ -1,0 +1,8 @@
+{
+	"appId": "com.flstudio.mobile",
+	"appName": "FL Mobile Studio",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	}
+}

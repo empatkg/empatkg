@@ -20,30 +20,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Project Dependencies
-        run: npm ci || npm install
+        run: npm install
 
-      - name: Build Web Production Distribution
+      - name: Build Web Application
         run: npm run build
 
-      - name: Setup Java Development Kit (JDK 17)
+      - name: Setup Java Development Kit (JDK 21)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Initialize & Sync Capacitor Android
+      - name: Accept Android SDK Licenses
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          # If android directory exists without a gradlew script, backup and re-initialize
-          if [ -d "android" ] && [ ! -f "android/gradlew" ]; then
-            mv android android-legacy || true
-          fi
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Synchronize Capacitor Android Assets
+        run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
@@ -53,18 +48,18 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Prepare APK Output Directory
+      - name: Collect Generated APK
         run: |
-          mkdir -p output-apk
-          find android/app/build/outputs/apk -name "*.apk" -exec cp {} output-apk/ \;
-          echo "Generated APK files:"
-          ls -lh output-apk/
+          mkdir -p build-output
+          find android/app/build/outputs/apk/debug -name "*.apk" -exec cp {} build-output/ \;
+          echo "Generated APK file(s):"
+          ls -lh build-output/
 
       - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
           name: FL-Studio-Mobile-APK
-          path: output-apk/*.apk
+          path: build-output/*.apk
           retention-days: 30
