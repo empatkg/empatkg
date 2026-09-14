@@ -26,6 +26,9 @@ import { SamplerWaveformView } from './components/SamplerWaveformView';
 import { MixerView } from './components/MixerView';
 import { VirtualKeyboard } from './components/VirtualKeyboard';
 import { ProjectModal } from './components/ProjectModal';
+import { FLStudioMenuModal } from './components/FLStudioMenuModal';
+import { AppConfig, AppTheme, THEME_PRESETS } from './types';
+import { loadScopedConfig } from './utils/scopedStorage';
 import { globalPlaybackEngine } from './audio/playbackEngine';
 import { MicRecorder } from './audio/audioContext';
 import { DEFAULT_SYNTH_PARAMS, SYNTH_PRESETS } from './audio/synthEngine';
@@ -38,6 +41,14 @@ import {
 export default function App() {
   // Screens: 'playlist' | 'pianoroll' | 'synth' | 'sampler' | 'mixer'
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('playlist');
+
+  // App Configuration & Theming (Scoped Storage & FL Studio Mobile Theme Engine)
+  const [appConfig, setAppConfig] = useState<AppConfig>(() => loadScopedConfig());
+  const [activeTheme, setActiveTheme] = useState<AppTheme>(() => {
+    const cfg = loadScopedConfig();
+    return THEME_PRESETS.find((t) => t.id === cfg.themeId) || THEME_PRESETS[0];
+  });
+  const [currentSongTitle, setCurrentSongTitle] = useState<string>('CINTA SATU MALAM');
 
   // Transport & Project state
   const [bpm, setBpm] = useState(120);
@@ -563,7 +574,13 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#101117] text-slate-100 font-sans overflow-hidden">
+    <div
+      className="flex flex-col h-screen w-screen font-sans overflow-hidden transition-colors duration-200"
+      style={{
+        backgroundColor: activeTheme.background,
+        color: '#f1f5f9',
+      }}
+    >
       {/* Top Transport & Header Bar */}
       <TransportBar
         activeScreen={activeScreen}
@@ -583,6 +600,8 @@ export default function App() {
         showKeyboard={showKeyboard}
         setShowKeyboard={setShowKeyboard}
         onOpenProjectModal={() => setIsProjectModalOpen(true)}
+        currentSongTitle={currentSongTitle}
+        activeTheme={activeTheme}
       />
 
       {/* Main Studio Viewport */}
@@ -667,13 +686,26 @@ export default function App() {
         />
       )}
 
-      {/* Project Settings & WAV Export Modal */}
-      <ProjectModal
+      {/* FL Studio Mobile 5-Tab System Menu: Songs (File Browser), Project, Settings (Theming & Scoped Storage Config), Shop, Sync */}
+      <FLStudioMenuModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         tracks={tracks}
+        setTracks={setTracks}
+        patterns={patterns}
+        setPatterns={setPatterns}
+        automationClips={automationClips}
+        setAutomationClips={setAutomationClips}
         bpm={bpm}
         setBpm={setBpm}
+        masterVolume={masterVolume}
+        setMasterVolume={setMasterVolume}
+        appConfig={appConfig}
+        setAppConfig={setAppConfig}
+        activeTheme={activeTheme}
+        setActiveTheme={setActiveTheme}
+        currentSongTitle={currentSongTitle}
+        setCurrentSongTitle={setCurrentSongTitle}
       />
     </div>
   );

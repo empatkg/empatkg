@@ -1,6 +1,6 @@
 {
   "name": "FL Mobile DAW & Sampler Studio",
-  "description": "FL Studio Mobile style digital audio workstation with multi-track recording, MIDI pattern sequencer, 3-band parametric EQ, real-time spectrum frequency analyzer visualizers per track via Web Audio AnalyserNode, convolution reverb FX plugin, FL Studio desktop tension automation clips (BPM, volume, pan, filter, reverb), and advanced waveform sampler.",
+  "description": "FL Studio Mobile style digital audio workstation with multi-track recording, MIDI pattern sequencer, 3-band parametric EQ, real-time spectrum frequency analyzer visualizers per track, tension automation clips, advanced waveform sampler, FL Mobile file browser, UI theming engine, and editable scoped storage configuration (/storage/emulated/0/FLM/config.json).",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -202,3 +202,158 @@ export interface ProjectState {
   metronome: boolean;
   masterVolume: number;
 }
+
+export interface AppTheme {
+  id: string;
+  name: string;
+  bg: string;
+  surface: string;
+  surfaceHeader: string;
+  border: string;
+  primary: string;
+  primaryLight: string;
+  text: string;
+  textMuted: string;
+  trackAccent: string;
+}
+
+export interface AppConfig {
+  version: string;
+  themeId: string;
+  customAccentColor: string;
+  uiScale: 'compact' | 'standard' | 'comfortable';
+  keySize: 'small' | 'medium' | 'large';
+  audioBufferSize: 'low_latency' | 'standard' | 'safe';
+  sampleRate: number;
+  metronomeSound: 'clave' | 'hihat' | 'woodblock';
+  metronomeVolume: number;
+  quantizeSnap: '1/4' | '1/8' | '1/16' | '1/32' | 'none';
+  autoSaveIntervalMinutes: number;
+  storagePath: string;
+  showCpuRamMeter: boolean;
+  highContrastGrid: boolean;
+  lastOpenedSongId?: string;
+}
+
+export type SongFormat = 'flm' | 'flp' | 'zip' | 'midi' | 'wav' | 'flac' | 'ogg' | 'mp3';
+
+export type FolderCategory = 'My Songs' | 'My Samples' | 'My Recordings' | 'My Presets' | 'Templates';
+
+export interface SongFile {
+  id: string;
+  name: string;
+  format: SongFormat;
+  folder: FolderCategory;
+  sizeBytes: number;
+  lastModified: number;
+  bpm: number;
+  durationFormatted: string;
+  tracksCount: number;
+  artist?: string;
+  genre?: string;
+  projectData?: {
+    tracks: any[];
+    patterns: any[];
+    automationClips: any[];
+    bpm: number;
+    masterVolume?: number;
+  };
+}
+
+export const THEME_PRESETS: AppTheme[] = [
+  {
+    id: 'fl-dark',
+    name: 'FL Studio Charcoal (Classic)',
+    bg: '#121316',
+    surface: '#181b22',
+    surfaceHeader: '#20242e',
+    border: '#2a2f3d',
+    primary: '#f97316',
+    primaryLight: '#fb923c',
+    text: '#f1f5f9',
+    textMuted: '#94a3b8',
+    trackAccent: '#f97316',
+  },
+  {
+    id: 'oled-midnight',
+    name: 'OLED Midnight & Neon Mint',
+    bg: '#08080a',
+    surface: '#0f1014',
+    surfaceHeader: '#16181f',
+    border: '#20232c',
+    primary: '#10b981',
+    primaryLight: '#34d399',
+    text: '#ffffff',
+    textMuted: '#a1a1aa',
+    trackAccent: '#10b981',
+  },
+  {
+    id: 'neon-cyber',
+    name: 'Cyberpunk Synthwave',
+    bg: '#0d0b14',
+    surface: '#151221',
+    surfaceHeader: '#1e1a30',
+    border: '#2d2547',
+    primary: '#06b6d4',
+    primaryLight: '#22d3ee',
+    text: '#f8fafc',
+    textMuted: '#a78bfa',
+    trackAccent: '#ec4899',
+  },
+  {
+    id: 'fruity-purple',
+    name: 'Fruity Deep Violet',
+    bg: '#110e18',
+    surface: '#191524',
+    surfaceHeader: '#231d33',
+    border: '#322a48',
+    primary: '#a855f7',
+    primaryLight: '#c084fc',
+    text: '#faf5ff',
+    textMuted: '#c4b5fd',
+    trackAccent: '#a855f7',
+  },
+  {
+    id: 'emerald-studio',
+    name: 'Emerald Electro',
+    bg: '#0c1313',
+    surface: '#121c1c',
+    surfaceHeader: '#182727',
+    border: '#203737',
+    primary: '#14b8a6',
+    primaryLight: '#2dd4bf',
+    text: '#f0fdfa',
+    textMuted: '#5eead4',
+    trackAccent: '#14b8a6',
+  },
+  {
+    id: 'nord-frost',
+    name: 'Nord Studio Frost',
+    bg: '#0f141c',
+    surface: '#161d29',
+    surfaceHeader: '#1e2736',
+    border: '#283447',
+    primary: '#38bdf8',
+    primaryLight: '#7dd3fc',
+    text: '#f0f9ff',
+    textMuted: '#93c5fd',
+    trackAccent: '#38bdf8',
+  },
+];
+
+export const DEFAULT_APP_CONFIG: AppConfig = {
+  version: '4.10.19 G',
+  themeId: 'fl-dark',
+  customAccentColor: '#f97316',
+  uiScale: 'standard',
+  keySize: 'medium',
+  audioBufferSize: 'standard',
+  sampleRate: 48000,
+  metronomeSound: 'clave',
+  metronomeVolume: 0.75,
+  quantizeSnap: '1/16',
+  autoSaveIntervalMinutes: 5,
+  storagePath: '/storage/emulated/0/FLM',
+  showCpuRamMeter: true,
+  highContrastGrid: false,
+};

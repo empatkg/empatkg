@@ -16,7 +16,7 @@ import {
   FolderOpen,
   Mic,
 } from 'lucide-react';
-import { ActiveScreen } from '../types';
+import { ActiveScreen, AppTheme } from '../types';
 import { globalPlaybackEngine } from '../audio/playbackEngine';
 import { setMasterVolume, getMasterAnalyser } from '../audio/audioContext';
 
@@ -40,6 +40,8 @@ interface TransportBarProps {
   showKeyboard: boolean;
   setShowKeyboard: (show: boolean) => void;
   onOpenProjectModal: () => void;
+  currentSongTitle?: string;
+  activeTheme?: AppTheme;
 }
 
 export const TransportBar: React.FC<TransportBarProps> = ({
@@ -60,6 +62,8 @@ export const TransportBar: React.FC<TransportBarProps> = ({
   showKeyboard,
   setShowKeyboard,
   onOpenProjectModal,
+  currentSongTitle = 'CINTA SATU MALAM',
+  activeTheme,
 }) => {
   const [tapTimes, setTapTimes] = useState<number[]>([]);
   const [vuLeft, setVuLeft] = useState(0);
@@ -128,19 +132,51 @@ export const TransportBar: React.FC<TransportBarProps> = ({
   ];
 
   return (
-    <header className="h-14 bg-[#181a20] border-b border-[#2a2d36] flex items-center justify-between px-2 sm:px-4 shrink-0 select-none z-30">
+    <header
+      className="h-14 border-b flex items-center justify-between px-2 sm:px-4 shrink-0 select-none z-30 transition-colors duration-200"
+      style={{
+        backgroundColor: activeTheme?.surfaceHeader || '#181a20',
+        borderColor: activeTheme?.border || '#2a2d36',
+      }}
+    >
       {/* Left: Branding & Project */}
       <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onOpenProjectModal}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#242731] hover:bg-[#2e323e] border border-[#373b49] text-xs font-semibold text-orange-400 transition-all shadow-sm active:scale-95"
-          title="Project Settings & Export"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#242731] hover:bg-[#2e323e] border border-[#373b49] text-xs font-semibold transition-all shadow-sm active:scale-95"
+          style={{
+            borderColor: activeTheme?.primary ? `${activeTheme.primary}50` : '#373b49',
+          }}
+          title="FL Studio Mobile Menu & File Browser"
         >
-          <div className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+          <div
+            className="w-2.5 h-2.5 rounded-full animate-pulse"
+            style={{
+              backgroundColor: activeTheme?.primary || '#f97316',
+              boxShadow: `0 0 8px ${activeTheme?.primary || '#f97316'}`,
+            }}
+          />
           <span className="font-bold tracking-wider text-slate-100 hidden sm:inline">FL STUDIO</span>
-          <span className="text-[10px] text-orange-400 font-mono font-bold bg-orange-950/60 px-1 py-0.5 rounded border border-orange-700/50">
+          <span
+            className="text-[10px] font-mono font-bold px-1 py-0.5 rounded border"
+            style={{
+              color: activeTheme?.primary || '#f97316',
+              borderColor: `${activeTheme?.primary || '#f97316'}40`,
+              backgroundColor: `${activeTheme?.primary || '#f97316'}18`,
+            }}
+          >
             MOBILE
           </span>
+        </button>
+
+        {/* Current Song Title Button (from video Frame 00:02 "New Song" / "CINTA SATU MALAM") */}
+        <button
+          onClick={onOpenProjectModal}
+          className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#14151a] hover:bg-[#1f222c] border border-[#2b2e3b] text-xs font-bold text-white transition-all max-w-[170px] truncate shadow-inner"
+          title="Current Song (Click to open File Browser)"
+        >
+          <FolderOpen className="w-3 h-3 text-amber-400 shrink-0" />
+          <span className="truncate">{currentSongTitle}</span>
         </button>
 
         {/* Transport Buttons: Play, Pause, Stop, Record */}
@@ -239,11 +275,19 @@ export const TransportBar: React.FC<TransportBarProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveScreen(tab.id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md shadow-orange-950/50'
+                  ? 'text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-[#222530]'
               }`}
+              style={
+                isActive
+                  ? {
+                      backgroundColor: activeTheme?.primary || '#ea580c',
+                      boxShadow: `0 4px 12px ${activeTheme?.primary || '#ea580c'}40`,
+                    }
+                  : undefined
+              }
             >
               <Icon className="w-3.5 h-3.5" />
               <span className="hidden md:inline">{tab.label}</span>

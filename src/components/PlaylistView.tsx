@@ -123,9 +123,61 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({
   const [snapBeats, setSnapBeats] = useState(1); // 1 beat snap
   const [activeEditingAutoClipId, setActiveEditingAutoClipId] = useState<string | null>(null);
   const [showAutoTargetDropdown, setShowAutoTargetDropdown] = useState(false);
+  const [isAddTrackMenuOpen, setIsAddTrackMenuOpen] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const totalBeats = 32;
+
+  // Selected clip finder
+  const selectedClip = (() => {
+    if (!selectedClipId) return null;
+    for (const t of tracks) {
+      const c = t.clips.find((clip) => clip.id === selectedClipId);
+      if (c) return { clip: c, track: t };
+    }
+    return null;
+  })();
+
+  // Handle Copy / Duplicate selected clip
+  const handleCopySelectedClip = () => {
+    if (!selectedClip) return;
+    const { clip, track } = selectedClip;
+    const newId = `clip_${Date.now()}`;
+    const newClip: TrackClip = {
+      ...clip,
+      id: newId,
+      startBeat: clip.startBeat + clip.durationBeats,
+      name: `${clip.name} (Copy)`,
+    } as TrackClip;
+
+    setTracks((prev) =>
+      prev.map((t) => (t.id === track.id ? { ...t, clips: [...t.clips, newClip] } : t))
+    );
+    setSelectedClipId(newId);
+  };
+
+  // Handle Delete selected clip
+  const handleDeleteSelectedClip = () => {
+    if (!selectedClip) return;
+    const { clip, track } = selectedClip;
+    setTracks((prev) =>
+      prev.map((t) =>
+        t.id === track.id ? { ...t, clips: t.clips.filter((c) => c.id !== clip.id) } : t
+      )
+    );
+    setSelectedClipId(null);
+  };
+
+  // Handle Edit selected clip in Sampler or Piano Roll
+  const handleEditSelectedClip = () => {
+    if (!selectedClip) return;
+    const { clip } = selectedClip;
+    if (clip.type === 'audio') {
+      onEditClipInSampler(clip);
+    } else if (clip.type === 'midi') {
+      onEditClipInPianoRoll(clip);
+    }
+  };
 
   // Add a new Audio or Synth track
   const handleAddTrack = (type: TrackType) => {
@@ -819,6 +871,128 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Floating Selected Clip Action Bar (matches video Frame 00:15) */}
+      {selectedClip && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 bg-[#161820]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#2e3346] shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+          <span className="text-xs font-bold text-white font-mono max-w-[120px] truncate mr-1">
+            {selectedClip.clip.name}
+          </span>
+          <button
+            onClick={handleCopySelectedClip}
+            className="px-3 py-1 rounded-full bg-white hover:bg-slate-200 text-black text-xs font-bold transition-all flex items-center gap-1 shadow-sm active:scale-95"
+            title="Duplicate Clip"
+          >
+            <Copy className="w-3 h-3" />
+            <span>Copy</span>
+          </button>
+          <button
+            onClick={handleDeleteSelectedClip}
+            className="px-3 py-1 rounded-full bg-[#2a2e3e] hover:bg-red-600 hover:text-white text-slate-300 text-xs font-bold transition-all flex items-center gap-1 border border-[#3b4157] active:scale-95"
+            title="Delete Clip"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Delete</span>
+          </button>
+          <button
+            onClick={() => {
+              const nextSnap = snapBeats === 1 ? 0.5 : snapBeats === 0.5 ? 0.25 : 1;
+              setSnapBeats(nextSnap);
+            }}
+            className="px-3 py-1 rounded-full bg-[#2a2e3e] hover:bg-[#353a4e] text-slate-300 text-xs font-bold font-mono transition-all border border-[#3b4157]"
+            title="Toggle Snap Grid"
+          >
+            Snap {snapBeats}x
+          </button>
+          <button
+            onClick={handleEditSelectedClip}
+            className="px-3.5 py-1 rounded-full bg-orange-500 hover:bg-orange-400 text-black text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1"
+            title="Open Editor"
+          >
+            <Sliders className="w-3 h-3" />
+            <span>Edit</span>
+          </button>
+        </div>
+      )}
+
+      {/* Floating Center-Bottom Circular + Add Button (matches video frames 00:00-00:35) */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+        {/* Add Track Popover Menu */}
+        {isAddTrackMenuOpen && (
+          <div className="mb-3 bg-[#181a24] rounded-2xl border border-[#2e3346] shadow-2xl p-2 w-56 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-3 py-1 text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider border-b border-[#242838]">
+              Add Track Channel
+            </div>
+            <button
+              onClick={() => {
+                handleAddTrack('audio');
+                setIsAddTrackMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#25293a] text-xs font-bold text-white transition-colors flex items-center gap-2"
+            >
+              <Waves className="w-4 h-4 text-emerald-400" />
+              <span>Audio Track</span>
+            </button>
+            <button
+              onClick={() => {
+                handleAddTrack('synth');
+                setIsAddTrackMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#25293a] text-xs font-bold text-white transition-colors flex items-center gap-2"
+            >
+              <Music className="w-4 h-4 text-orange-400" />
+              <span>Synth / Instrument</span>
+            </button>
+            <button
+              onClick={() => {
+                handleAddTrack('synth');
+                setIsAddTrackMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#25293a] text-xs font-bold text-white transition-colors flex items-center gap-2"
+            >
+              <Zap className="w-4 h-4 text-cyan-400" />
+              <span>Drum Sequencer</span>
+            </button>
+            <button
+              onClick={() => {
+                setShowAutoTargetDropdown(true);
+                setIsAddTrackMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#25293a] text-xs font-bold text-white transition-colors flex items-center gap-2"
+            >
+              <TrendingUp className="w-4 h-4 text-amber-400" />
+              <span>Automation Track</span>
+            </button>
+          </div>
+        )}
+
+        {/* The Circular Floating Add Button */}
+        <button
+          onClick={() => setIsAddTrackMenuOpen(!isAddTrackMenuOpen)}
+          className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 active:scale-90 border border-[#40465c] ${
+            isAddTrackMenuOpen
+              ? 'bg-orange-500 text-black rotate-45 shadow-orange-500/40'
+              : 'bg-[#202330] hover:bg-[#2b3042] text-white hover:text-orange-400'
+          }`}
+          title="Add Track or Automation"
+        >
+          <Plus className="w-6 h-6 stroke-[2.5]" />
+        </button>
+      </div>
+
+      {/* Right Edge Collapsible Panel Toggle Button (matches video right edge) */}
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 z-30 hidden sm:flex">
+        <button
+          onClick={() => {
+            const nextSnap = snapBeats === 1 ? 0.5 : 1;
+            setSnapBeats(nextSnap);
+          }}
+          className="w-6 h-12 bg-[#1b1e2a]/80 hover:bg-[#262a3c] rounded-l-lg border-l border-y border-[#31364b] flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-md"
+          title="Toggle Grid / Side Panel"
+        >
+          <span className="text-[10px] font-mono font-bold">&lt;</span>
+        </button>
       </div>
 
       {/* Automation Clip Breakpoint & Tension Editor Modal */}
